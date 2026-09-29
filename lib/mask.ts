@@ -1,4 +1,4 @@
-﻿export function maskAdmissionNo(admissionNo: string): string {
+export function maskAdmissionNo(admissionNo: string): string {
   const parts = admissionNo.split("/");
   if (parts.length !== 3) return admissionNo;
   const [prefix, middle, suffix] = parts;

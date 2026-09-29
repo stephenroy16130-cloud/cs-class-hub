@@ -1,4 +1,4 @@
-﻿import Hero from "@/components/Hero";
+import Hero from "@/components/Hero";
 import StatsBar from "@/components/StatsBar";
 import AnnouncementsPreview from "@/components/AnnouncementsPreview";
 import ClassesPreview from "@/components/ClassesPreview";

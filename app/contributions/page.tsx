@@ -1,4 +1,4 @@
-﻿const contributors = [
+const contributors = [
   { name: "Group 01", status: "Paid" },
   { name: "Group 02", status: "Paid" },
   { name: "Group 03", status: "Pending" },

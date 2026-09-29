@@ -1,4 +1,4 @@
-﻿import { siteStats } from "@/lib/data";
+import { siteStats } from "@/lib/data";
 
 export default function StatsBar() {
   const stats = [

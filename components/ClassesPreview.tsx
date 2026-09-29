@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { timetable } from "@/lib/data";
 
 export default function ClassesPreview() {

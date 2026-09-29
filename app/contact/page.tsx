@@ -1,4 +1,4 @@
-﻿const faqs = [
+const faqs = [
   { q: "How do I find my group?", a: "Go to the Groups page and search by your admission number or name." },
   { q: "Where can I get lecture notes?", a: "Visit the Resources page and browse by unit." },
   { q: "How do I report a timetable clash?", a: "Contact the class representative directly using the details below." },

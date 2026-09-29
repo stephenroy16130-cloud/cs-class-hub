@@ -1,4 +1,4 @@
-﻿export const siteStats = {
+export const siteStats = {
   totalStudents: 240,
   activeGroups: 24,
   upcomingClassesCount: 3,
