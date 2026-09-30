@@ -1,16 +1,25 @@
-import Link from "next/link";
+﻿import Link from "next/link";
+import { cookies } from "next/headers";
+import { verifySessionToken } from "@/lib/auth";
+import NavAuthLinks from "@/components/NavAuthLinks";
+import MobileMenu from "@/components/MobileMenu";
 
 const links = [
   { href: "/timetable", label: "Timetable" },
   { href: "/announcements", label: "Announcements" },
   { href: "/resources", label: "Resources" },
   { href: "/groups", label: "Groups" },
-  { href: "/contributions", label: "Contributions" },
+  { href: "/attendance", label: "Attendance" },
   { href: "/contact", label: "Contact" },
   { href: "/about", label: "About" },
 ];
 
-export default function Navbar() {
+export default async function Navbar() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
+  const session = token ? await verifySessionToken(token) : null;
+  const sessionForClient = session ? { name: session.name, role: session.role } : null;
+
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
@@ -31,13 +40,13 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <Link
-          href="/timetable"
-          className="rounded-md bg-gold px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
-        >
-          View Timetable
-        </Link>
+        <div className="hidden md:block">
+          <NavAuthLinks session={sessionForClient} />
+        </div>
+
+        <MobileMenu links={links} session={sessionForClient} />
       </div>
     </header>
   );
 }
+
