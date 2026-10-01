@@ -2,17 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getUpcomingSessions } from "@/lib/schedule";
+import { getUpcomingSessions, type TimetableSession } from "@/lib/schedule";
 
 export default function ClassesPreview() {
   const [now, setNow] = useState(new Date());
+  const [sessions, setSessions] = useState<TimetableSession[]>([]);
+
+  useEffect(() => {
+    fetch("/api/timetable")
+      .then((res) => (res.ok ? res.json() : { sessions: [] }))
+      .then((data) => setSessions(data.sessions || []));
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  const upcoming = getUpcomingSessions(now, 3);
+  const upcoming = getUpcomingSessions(sessions, now, 3);
 
   return (
     <section className="bg-mist py-16">

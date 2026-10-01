@@ -86,3 +86,30 @@ CREATE TABLE IF NOT EXISTS group_messages (
 );
 
 CREATE INDEX IF NOT EXISTS idx_group_messages_group ON group_messages (group_id, created_at);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT,
+  read BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications (user_id, created_at DESC);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_data TEXT;
+
+CREATE TABLE IF NOT EXISTS timetable_sessions (
+  id SERIAL PRIMARY KEY,
+  day TEXT NOT NULL CHECK (day IN ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')),
+  time TEXT NOT NULL,
+  unit TEXT NOT NULL,
+  lecturer TEXT NOT NULL,
+  venue TEXT NOT NULL,
+  mode TEXT NOT NULL CHECK (mode IN ('In-Person', 'Online')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_timetable_day ON timetable_sessions (day);

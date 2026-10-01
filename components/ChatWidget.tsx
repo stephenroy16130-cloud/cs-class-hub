@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { getNextClass, matchIntent } from "@/lib/chatbot";
+import { matchIntent } from "@/lib/chatbot";
+import { getNextSession, type TimetableSession } from "@/lib/schedule";
 
 type Message = { id: number; from: "bot" | "user"; text: string; link?: { href: string; label: string } };
 
@@ -15,6 +16,7 @@ export default function ChatWidget() {
   ]);
   const [input, setInput] = useState("");
   const [session, setSession] = useState<{ admissionNo: string | null; role: string } | null>(null);
+  const [sessions, setSessions] = useState<TimetableSession[]>([]);
   const [thinking, setThinking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -22,6 +24,10 @@ export default function ChatWidget() {
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((data) => setSession(data.session));
+
+    fetch("/api/timetable")
+      .then((res) => (res.ok ? res.json() : { sessions: [] }))
+      .then((data) => setSessions(data.sessions || []));
   }, []);
 
   useEffect(() => {
@@ -54,7 +60,7 @@ export default function ChatWidget() {
           break;
 
         case "next_class": {
-          const next = getNextClass(new Date());
+          const next = getNextSession(sessions, new Date());
           if (!next) {
             addBotMessage("I couldn't find an upcoming class in the timetable.");
           } else {

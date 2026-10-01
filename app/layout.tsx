@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import InitialSplash from "@/components/InitialSplash";
 import ChatWidget from "@/components/ChatWidget";
+import AccountMenu from "@/components/AccountMenu";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="min-h-screen">{children}</main>
         <Footer />
         <ChatWidget />
+        <AccountMenu />
       </body>
     </html>
   );

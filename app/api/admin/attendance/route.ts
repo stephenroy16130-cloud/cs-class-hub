@@ -2,6 +2,7 @@
 import { sql } from "@vercel/postgres";
 import { verifySessionToken } from "@/lib/auth";
 import { getInPersonSessionForDate } from "@/lib/attendance";
+import { notifyUser } from "@/lib/notify";
 
 export async function GET(req: NextRequest) {
   const token = req.cookies.get("session")?.value;
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
   }
 
   const date = new Date(dateParam + "T00:00:00");
-  const inPerson = getInPersonSessionForDate(date);
+  const inPerson = await getInPersonSessionForDate(date);
 
   if (!inPerson) {
     return NextResponse.json({ unit: null, time: null, students: [] });
@@ -59,7 +60,19 @@ export async function POST(req: NextRequest) {
       ON CONFLICT (admission_no, class_date)
       DO UPDATE SET status = ${r.status}, marked_by = ${session.userId}, unit = ${unit}
     `;
+
+    const userResult = await sql`SELECT id FROM users WHERE admission_no = ${r.admissionNo}`;
+    const studentUserId = userResult.rows[0]?.id;
+    if (studentUserId) {
+      await notifyUser(
+        studentUserId,
+        "attendance",
+        "Your attendance has been recorded",
+        `Marked ${r.status} for ${unit} on ${date}.`
+      );
+    }
   }
 
   return NextResponse.json({ success: true, count: records.length });
 }
+
