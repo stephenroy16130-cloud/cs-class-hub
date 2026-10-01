@@ -3,22 +3,41 @@
 import { useEffect, useState } from "react";
 
 type ClassDay = { date: string; unit: string; status: "present" | "absent" | null };
+type Summary = { present: number; absent: number; total: number; percentage: number | null };
 
 export default function AttendanceCalendar() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [classDays, setClassDays] = useState<ClassDay[]>([]);
+  const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  async function loadMonth() {
     setLoading(true);
     const monthParam = `${year}-${String(month + 1).padStart(2, "0")}`;
-    fetch(`/api/attendance/me?month=${monthParam}`)
-      .then((res) => res.json())
-      .then((data) => setClassDays(data.classDays || []))
-      .finally(() => setLoading(false));
+    const res = await fetch(`/api/attendance/me?month=${monthParam}`);
+    if (res.ok) {
+      const data = await res.json();
+      setClassDays(data.classDays || []);
+    }
+    setLoading(false);
+  }
+
+  async function loadSummary() {
+    const res = await fetch("/api/attendance/summary");
+    if (res.ok) setSummary(await res.json());
+  }
+
+  useEffect(() => {
+    loadMonth();
   }, [year, month]);
+
+  useEffect(() => {
+    loadSummary();
+    const interval = setInterval(loadSummary, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const firstOfMonth = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -39,11 +58,33 @@ export default function AttendanceCalendar() {
   }
 
   const monthLabel = firstOfMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-  const presentCount = classDays.filter((c) => c.status === "present").length;
-  const absentCount = classDays.filter((c) => c.status === "absent").length;
 
   return (
     <div className="mt-8">
+      {summary && summary.total > 0 && (
+        <div className="mb-6 rounded-lg border border-gray-200 p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-navy">Overall Attendance</p>
+            <p className={`font-serif text-2xl font-bold ${
+              (summary.percentage ?? 0) >= 75 ? "text-emerald-600" : (summary.percentage ?? 0) >= 50 ? "text-amber-600" : "text-red-600"
+            }`}>
+              {summary.percentage}%
+            </p>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+            <div
+              className={`h-full rounded-full ${
+                (summary.percentage ?? 0) >= 75 ? "bg-emerald-500" : (summary.percentage ?? 0) >= 50 ? "bg-amber-500" : "bg-red-500"
+              }`}
+              style={{ width: `${summary.percentage}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-gray-500">
+            Present {summary.present} of {summary.total} recorded in-person sessions ({summary.absent} absent)
+          </p>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <button onClick={prevMonth} className="rounded-md border border-gray-300 px-3 py-1 text-sm">&larr;</button>
         <h2 className="font-serif text-lg font-semibold text-navy">{monthLabel}</h2>
@@ -83,8 +124,8 @@ export default function AttendanceCalendar() {
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-gray-500">
-        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-emerald-500" /> Present ({presentCount})</span>
-        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-red-500" /> Absent ({absentCount})</span>
+        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-emerald-500" /> Present</span>
+        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-red-500" /> Absent</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-gray-100 border border-gray-300" /> Not yet marked</span>
       </div>
 

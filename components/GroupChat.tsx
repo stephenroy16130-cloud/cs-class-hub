@@ -8,6 +8,7 @@ export default function GroupChat({ groupId, currentUserId }: { groupId: number;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   async function load() {
@@ -36,11 +37,15 @@ export default function GroupChat({ groupId, currentUserId }: { groupId: number;
     const text = input.trim();
     if (!text) return;
     setInput("");
-    await fetch(`/api/groups/${groupId}/messages`, {
+    const res = await fetch(`/api/groups/${groupId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ body: text }),
     });
+    if (res.ok) {
+      setSent(true);
+      setTimeout(() => setSent(false), 1500);
+    }
     load();
   }
 
@@ -55,7 +60,7 @@ export default function GroupChat({ groupId, currentUserId }: { groupId: number;
         {messages.map((m) => (
           <div key={m.id} className={`mb-2 flex ${m.userId === currentUserId ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[80%] rounded-lg px-3 py-1.5 text-xs ${m.userId === currentUserId ? "bg-navy text-white" : "bg-gray-100 text-navy"}`}>
-              {m.userId !== currentUserId && <p className="mb-0.5 font-semibold text-gold">{m.senderName}</p>}
+              <p className="mb-0.5 font-semibold text-gold">{m.userId === currentUserId ? "You" : m.senderName}</p>
               <p>{m.body}</p>
               <p className="mt-0.5 text-[10px] opacity-60">{m.time}</p>
             </div>
@@ -63,7 +68,7 @@ export default function GroupChat({ groupId, currentUserId }: { groupId: number;
         ))}
         <div ref={bottomRef} />
       </div>
-      <form onSubmit={handleSend} className="flex gap-2 border-t border-gray-200 p-2">
+      <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-gray-200 p-2">
         <input
           type="text"
           value={input}
@@ -74,6 +79,7 @@ export default function GroupChat({ groupId, currentUserId }: { groupId: number;
         <button type="submit" className="rounded-md bg-gold px-3 py-1 text-xs font-semibold text-white">
           Send
         </button>
+        {sent && <span className="text-xs text-emerald-600">Sent &#10003;</span>}
       </form>
     </div>
   );

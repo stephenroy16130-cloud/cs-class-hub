@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { verifySessionToken } from "@/lib/auth";
 import NavAuthLinks from "@/components/NavAuthLinks";
 import MobileMenu from "@/components/MobileMenu";
+import NavLinks from "@/components/NavLinks";
 
 const links = [
   { href: "/timetable", label: "Timetable" },
@@ -32,13 +33,7 @@ export default async function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden gap-6 text-sm font-medium text-navy md:flex">
-          {links.map((l) => (
-            <Link key={l.href} href={l.href} className="transition hover:text-gold">
-              {l.label}
-            </Link>
-          ))}
-        </nav>
+        <NavLinks links={links} />
 
         <div className="hidden md:block">
           <NavAuthLinks session={sessionForClient} />
@@ -49,4 +44,3 @@ export default async function Navbar() {
     </header>
   );
 }
-

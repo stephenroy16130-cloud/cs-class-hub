@@ -1,4 +1,4 @@
-const faqs = [
+﻿const faqs = [
   { q: "How do I find my group?", a: "Go to the Groups page and search by your admission number or name." },
   { q: "Where can I get lecture notes?", a: "Visit the Resources page and browse by unit." },
   { q: "How do I report a timetable clash?", a: "Contact the class representative directly using the details below." },
@@ -18,18 +18,18 @@ export default function ContactPage() {
           </div>
           <p className="mt-3 font-serif text-lg font-semibold text-navy">Stephen Roy</p>
           <p className="text-sm text-gray-500">Class President</p>
-          <a href="https://wa.me/254700000000" className="mt-2 inline-block text-sm font-semibold text-navy hover:text-gold">
+          <a href="https://wa.me/254105557854" target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm font-semibold text-navy hover:text-gold">
             WhatsApp &rarr;
           </a>
         </div>
 
         <div className="rounded-lg border border-gray-200 p-6 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-navy font-serif text-xl text-gold">
-            AS
+            VC
           </div>
           <p className="mt-3 font-serif text-lg font-semibold text-navy">Virginia Chemutai</p>
           <p className="text-sm text-gray-500">Class Assistant</p>
-          <a href="https://wa.me/254105557854" className="mt-2 inline-block text-sm font-semibold text-navy hover:text-gold">
+          <a href="https://wa.me/254142618626" target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm font-semibold text-navy hover:text-gold">
             WhatsApp &rarr;
           </a>
         </div>

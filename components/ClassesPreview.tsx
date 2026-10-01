@@ -1,8 +1,18 @@
+﻿"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { timetable } from "@/lib/data";
+import { getUpcomingSessions } from "@/lib/schedule";
 
 export default function ClassesPreview() {
-  const preview = timetable.slice(0, 3);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const upcoming = getUpcomingSessions(now, 3);
 
   return (
     <section className="bg-mist py-16">
@@ -18,22 +28,28 @@ export default function ClassesPreview() {
         </div>
 
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-          {preview.map((c, i) => (
-            <div
-              key={c.id}
-              className={`flex flex-col gap-1 px-5 py-4 sm:flex-row sm:items-center sm:justify-between ${
-                i !== preview.length - 1 ? "border-b border-gray-200" : ""
-              }`}
-            >
-              <div>
-                <p className="font-semibold text-navy">{c.unit}</p>
-                <p className="text-sm text-gray-500">{c.lecturer} &middot; {c.venue}</p>
+          {upcoming.map((u, i) => {
+            const whenLabel = u.offset === 0 ? "Today" : u.offset === 1 ? "Tomorrow" : u.dayName;
+            return (
+              <div
+                key={`${u.session.id}-${u.offset}`}
+                className={`flex flex-col gap-1 px-5 py-4 sm:flex-row sm:items-center sm:justify-between ${
+                  i !== upcoming.length - 1 ? "border-b border-gray-200" : ""
+                }`}
+              >
+                <div>
+                  <p className="font-semibold text-navy">{u.session.unit}</p>
+                  <p className="text-sm text-gray-500">{u.session.lecturer} &middot; {u.session.venue}</p>
+                </div>
+                <div className="text-sm text-gray-600">
+                  {whenLabel}, {u.session.time}
+                </div>
               </div>
-              <div className="text-sm text-gray-600">
-                {c.day}, {c.time}
-              </div>
-            </div>
-          ))}
+            );
+          })}
+          {upcoming.length === 0 && (
+            <p className="px-5 py-6 text-center text-sm text-gray-400">No upcoming classes found.</p>
+          )}
         </div>
 
         <Link href="/timetable" className="mt-6 block text-sm font-semibold text-navy hover:text-gold sm:hidden">

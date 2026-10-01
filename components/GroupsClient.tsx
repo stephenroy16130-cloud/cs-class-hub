@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { maskAdmissionNo } from "@/lib/mask";
 import GroupChat from "@/components/GroupChat";
-import GroupsSkeleton from "@/components/GroupsSkeleton";type Member = { id: number; name: string; admissionNo: string };
+import GroupsSkeleton from "@/components/GroupsSkeleton";
+
+type Member = { id: number; name: string; admissionNo: string };
 type Group = {
   id: number;
   members: Member[];
@@ -32,7 +34,7 @@ export default function GroupsClient({ role, userId }: { role: "admin" | "studen
       const res = await fetch("/api/groups");
       if (res.ok) setData(await res.json());
     } catch {
-      // network error on load; leave previous data in place
+      // keep previous data on a transient network error
     }
   }
 
@@ -84,6 +86,8 @@ export default function GroupsClient({ role, userId }: { role: "admin" | "studen
       )?.id ?? null
     : null;
 
+  const canRequestAny = role === "student" && !data.yourGroupId && !data.pendingRequestGroupId;
+
   return (
     <section className="mx-auto max-w-5xl px-4 py-16">
       <div className="flex items-start justify-between">
@@ -127,7 +131,6 @@ export default function GroupsClient({ role, userId }: { role: "admin" | "studen
         {data.groups.map((g) => {
           const isOpen = openGroup === g.id || matchingGroupId === g.id;
           const isYours = data.yourGroupId === g.id;
-          const isPending = data.pendingRequestGroupId === g.id;
 
           return (
             <div key={g.id} className="rounded-lg border border-gray-200">
@@ -176,13 +179,13 @@ export default function GroupsClient({ role, userId }: { role: "admin" | "studen
                     )}
                   </ul>
 
-                  {role === "student" && !isYours && (
+                  {canRequestAny && !isYours && (
                     <button
                       onClick={() => requestJoin(g.id)}
-                      disabled={requesting === g.id || isPending}
+                      disabled={requesting === g.id}
                       className="mt-3 w-full rounded-md border border-navy py-1.5 text-xs font-semibold text-navy transition hover:bg-navy hover:text-white disabled:opacity-50"
                     >
-                      {isPending ? "Request Pending" : requesting === g.id ? "Sending..." : "Request to Join"}
+                      {requesting === g.id ? "Sending..." : "Request to Join"}
                     </button>
                   )}
 
@@ -201,6 +204,3 @@ export default function GroupsClient({ role, userId }: { role: "admin" | "studen
     </section>
   );
 }
-
-
-

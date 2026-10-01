@@ -15,6 +15,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const userResult = await sql`SELECT group_id FROM users WHERE id = ${session.userId}`;
+    if (userResult.rows[0]?.group_id) {
+      return NextResponse.json(
+        { error: "You're already in a group. Contact the admin if you need to switch." },
+        { status: 409 }
+      );
+    }
+
     const existing = await sql`
       SELECT id FROM join_requests WHERE user_id = ${session.userId} AND status = 'pending'
     `;

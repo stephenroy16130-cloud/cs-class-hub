@@ -88,6 +88,11 @@ export default function ClassListClient({ isAdmin }: { isAdmin: boolean }) {
           <p className="text-sm font-semibold uppercase tracking-widest text-gold">Roster</p>
           <h1 className="mt-1 font-serif text-3xl font-bold text-navy">Class List</h1>
           <p className="mt-2 text-gray-600">{roster.length} students enrolled</p>
+          {!isAdmin && (
+            <p className="mt-1 text-xs text-gray-400">
+              Search to confirm you&apos;re on the official class list. Contact details are kept private.
+            </p>
+          )}
         </div>
         {isAdmin && (
           <button
@@ -119,7 +124,7 @@ export default function ClassListClient({ isAdmin }: { isAdmin: boolean }) {
           />
           <input
             type="text"
-            placeholder="Contact (optional)"
+            placeholder="Contact (optional, kept private)"
             value={newContact}
             onChange={(e) => setNewContact(e.target.value)}
             className="rounded-md border border-gray-300 px-3 py-2 text-sm"
@@ -168,9 +173,9 @@ export default function ClassListClient({ isAdmin }: { isAdmin: boolean }) {
                 <p className="text-xs text-gray-400">{maskAdmissionNo(r.admission_no)}</p>
               </div>
               <div className="flex items-center gap-4">
-                {r.contact && <span className="text-gray-500">{r.contact}</span>}
-                {isAdmin && (
+                {isAdmin ? (
                   <>
+                    {r.contact && <span className="text-gray-500">{r.contact}</span>}
                     <button
                       onClick={() => resetPassword(r.admission_no)}
                       disabled={resettingFor === r.admission_no}
@@ -185,6 +190,10 @@ export default function ClassListClient({ isAdmin }: { isAdmin: boolean }) {
                       Remove
                     </button>
                   </>
+                ) : (
+                  <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
+                    Enrolled &#10003;
+                  </span>
                 )}
               </div>
             </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 type NavLink = { href: string; label: string };
 type Session = { name: string; role: "admin" | "student" } | null;
@@ -10,12 +10,12 @@ type Session = { name: string; role: "admin" | "student" } | null;
 export default function MobileMenu({ links, session }: { links: NavLink[]; session: Session }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   async function handleLogout() {
     setOpen(false);
     await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/");
-    router.refresh();
+    window.location.href = "/";
   }
 
   return (
@@ -37,16 +37,21 @@ export default function MobileMenu({ links, session }: { links: NavLink[]; sessi
         }`}
       >
         <nav className="flex flex-col gap-1 px-4 py-4">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              className="rounded-md px-3 py-3 text-sm font-medium text-navy transition hover:bg-gold-light"
-            >
-              {l.label}
-            </Link>
-          ))}
+          {links.map((l) => {
+            const isActive = pathname === l.href || (l.href !== "/" && pathname.startsWith(l.href));
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className={`rounded-md px-3 py-3 text-sm font-medium transition ${
+                  isActive ? "bg-gold-light text-navy" : "text-navy hover:bg-gold-light"
+                }`}
+              >
+                {l.label}
+              </Link>
+            );
+          })}
 
           <div className="my-2 border-t border-gray-100" />
 
@@ -57,7 +62,9 @@ export default function MobileMenu({ links, session }: { links: NavLink[]; sessi
                 <Link
                   href="/admin"
                   onClick={() => setOpen(false)}
-                  className="rounded-md px-3 py-3 text-sm font-medium text-navy transition hover:bg-gold-light"
+                  className={`rounded-md px-3 py-3 text-sm font-medium transition ${
+                    pathname.startsWith("/admin") ? "bg-gold-light text-navy" : "text-navy hover:bg-gold-light"
+                  }`}
                 >
                   Admin
                 </Link>
@@ -65,7 +72,9 @@ export default function MobileMenu({ links, session }: { links: NavLink[]; sessi
               <Link
                 href="/class-list"
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-3 text-sm font-medium text-navy transition hover:bg-gold-light"
+                className={`rounded-md px-3 py-3 text-sm font-medium transition ${
+                  pathname.startsWith("/class-list") ? "bg-gold-light text-navy" : "text-navy hover:bg-gold-light"
+                }`}
               >
                 Class List
               </Link>
