@@ -7,5 +7,5 @@ export default async function GroupsPage() {
   const token = cookieStore.get("session")?.value;
   const session = token ? await verifySessionToken(token) : null;
 
-  return <GroupsClient role={session?.role ?? "student"} />;
+  return <GroupsClient role={session?.role ?? "student"} userId={session?.userId ?? null} />;
 }

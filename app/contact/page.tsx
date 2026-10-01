@@ -14,9 +14,9 @@ export default function ContactPage() {
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
         <div className="rounded-lg border border-gray-200 p-6 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-navy font-serif text-xl text-gold">
-            SO
+            SR
           </div>
-          <p className="mt-3 font-serif text-lg font-semibold text-navy">Stephen</p>
+          <p className="mt-3 font-serif text-lg font-semibold text-navy">Stephen Roy</p>
           <p className="text-sm text-gray-500">Class President</p>
           <a href="https://wa.me/254700000000" className="mt-2 inline-block text-sm font-semibold text-navy hover:text-gold">
             WhatsApp &rarr;
@@ -27,9 +27,9 @@ export default function ContactPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-navy font-serif text-xl text-gold">
             AS
           </div>
-          <p className="mt-3 font-serif text-lg font-semibold text-navy">Assistant Name</p>
+          <p className="mt-3 font-serif text-lg font-semibold text-navy">Virginia Chemutai</p>
           <p className="text-sm text-gray-500">Class Assistant</p>
-          <a href="https://wa.me/254700000000" className="mt-2 inline-block text-sm font-semibold text-navy hover:text-gold">
+          <a href="https://wa.me/254105557854" className="mt-2 inline-block text-sm font-semibold text-navy hover:text-gold">
             WhatsApp &rarr;
           </a>
         </div>

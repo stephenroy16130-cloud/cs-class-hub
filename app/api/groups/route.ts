@@ -15,9 +15,18 @@ export async function GET(req: NextRequest) {
     ORDER BY group_id NULLS LAST, name
   `;
 
+  const infoResult = await sql`SELECT group_id, leader_admission_no, whatsapp_link FROM group_info`;
+  const infoByGroup = new Map(infoResult.rows.map((r) => [r.group_id, r]));
+
   const groupsMap = new Map();
   for (let i = 1; i <= 24; i++) {
-    groupsMap.set(i, { id: i, members: [] as any[] });
+    const info = infoByGroup.get(i);
+    groupsMap.set(i, {
+      id: i,
+      members: [] as any[],
+      leaderAdmissionNo: info?.leader_admission_no ?? null,
+      whatsappLink: info?.whatsapp_link ?? null,
+    });
   }
   const unassigned: any[] = [];
 
@@ -27,6 +36,15 @@ export async function GET(req: NextRequest) {
       groupsMap.get(row.group_id).members.push(member);
     } else {
       unassigned.push(member);
+    }
+  }
+
+  for (const group of groupsMap.values()) {
+    if (group.leaderAdmissionNo) {
+      const leader = group.members.find((m: any) => m.admissionNo === group.leaderAdmissionNo);
+      group.leaderName = leader ? leader.name : null;
+    } else {
+      group.leaderName = null;
     }
   }
 

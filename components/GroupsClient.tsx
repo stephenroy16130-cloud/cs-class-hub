@@ -3,9 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { maskAdmissionNo } from "@/lib/mask";
-
-type Member = { id: number; name: string; admissionNo: string };
-type Group = { id: number; members: Member[] };
+import GroupChat from "@/components/GroupChat";
+import GroupsSkeleton from "@/components/GroupsSkeleton";type Member = { id: number; name: string; admissionNo: string };
+type Group = {
+  id: number;
+  members: Member[];
+  leaderAdmissionNo: string | null;
+  leaderName: string | null;
+  whatsappLink: string | null;
+};
 
 type GroupsData = {
   groups: Group[];
@@ -14,7 +20,7 @@ type GroupsData = {
   pendingRequestGroupId: number | null;
 };
 
-export default function GroupsClient({ role }: { role: "admin" | "student" }) {
+export default function GroupsClient({ role, userId }: { role: "admin" | "student"; userId: number | null }) {
   const [data, setData] = useState<GroupsData | null>(null);
   const [query, setQuery] = useState("");
   const [openGroup, setOpenGroup] = useState<number | null>(null);
@@ -22,8 +28,12 @@ export default function GroupsClient({ role }: { role: "admin" | "student" }) {
   const [message, setMessage] = useState("");
 
   async function load() {
-    const res = await fetch("/api/groups");
-    if (res.ok) setData(await res.json());
+    try {
+      const res = await fetch("/api/groups");
+      if (res.ok) setData(await res.json());
+    } catch {
+      // network error on load; leave previous data in place
+    }
   }
 
   useEffect(() => {
@@ -39,20 +49,29 @@ export default function GroupsClient({ role }: { role: "admin" | "student" }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ groupId }),
       });
-      const result = await res.json();
+
+      let result: any = {};
+      try {
+        result = await res.json();
+      } catch {
+        result = {};
+      }
+
       if (!res.ok) {
-        setMessage(result.error || "Something went wrong.");
+        setMessage(result.error || "The server didn't respond properly. Please try again in a moment.");
       } else {
         setMessage("Request sent. Waiting for admin approval.");
         load();
       }
+    } catch {
+      setMessage("Could not reach the server. Check your connection and try again.");
     } finally {
       setRequesting(null);
     }
   }
 
   if (!data) {
-    return <p className="py-16 text-center text-sm text-gray-400">Loading groups...</p>;
+    return <GroupsSkeleton />;
   }
 
   const matchingGroupId = query.trim()
@@ -121,17 +140,34 @@ export default function GroupsClient({ role }: { role: "admin" | "student" }) {
                     Group {String(g.id).padStart(2, "0")}
                     {isYours && <span className="ml-2 text-xs font-normal text-emerald-600">(Your group)</span>}
                   </p>
-                  <p className="text-xs text-gray-500">{g.members.length} members</p>
+                  <p className="text-xs text-gray-500">
+                    {g.members.length} members{g.leaderName ? ` \u00b7 Leader: ${g.leaderName}` : ""}
+                  </p>
                 </div>
                 <span className="text-gray-400">{isOpen ? "-" : "+"}</span>
               </button>
 
               {isOpen && (
                 <div className="border-t border-gray-200 px-5 py-3">
+                  {g.whatsappLink && (
+                    <a
+                      href={g.whatsappLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mb-3 inline-block rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+                    >
+                      Join WhatsApp Group
+                    </a>
+                  )}
                   <ul className="divide-y divide-gray-100 text-sm">
                     {g.members.map((m) => (
                       <li key={m.id} className="flex items-center justify-between py-2">
-                        <span className="text-navy">{m.name}</span>
+                        <span className="text-navy">
+                          {m.name}
+                          {g.leaderAdmissionNo === m.admissionNo && (
+                            <span className="ml-1 text-xs text-gold">(Leader)</span>
+                          )}
+                        </span>
                         <span className="text-xs text-gray-400">{maskAdmissionNo(m.admissionNo)}</span>
                       </li>
                     ))}
@@ -149,6 +185,13 @@ export default function GroupsClient({ role }: { role: "admin" | "student" }) {
                       {isPending ? "Request Pending" : requesting === g.id ? "Sending..." : "Request to Join"}
                     </button>
                   )}
+
+                  {(isYours || role === "admin") && (
+                    <div className="mt-3">
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">Group Chat</p>
+                      <GroupChat groupId={g.id} currentUserId={userId} />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -158,3 +201,6 @@ export default function GroupsClient({ role }: { role: "admin" | "student" }) {
     </section>
   );
 }
+
+
+

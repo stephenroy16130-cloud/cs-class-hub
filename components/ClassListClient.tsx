@@ -14,6 +14,8 @@ export default function ClassListClient({ isAdmin }: { isAdmin: boolean }) {
   const [newName, setNewName] = useState("");
   const [newContact, setNewContact] = useState("");
   const [message, setMessage] = useState("");
+  const [resettingFor, setResettingFor] = useState<string | null>(null);
+  const [tempPasswordResult, setTempPasswordResult] = useState<{ admissionNo: string; password: string } | null>(null);
 
   async function load() {
     setLoading(true);
@@ -50,6 +52,27 @@ export default function ClassListClient({ isAdmin }: { isAdmin: boolean }) {
     if (!confirm("Remove this student from the class list?")) return;
     await fetch(`/api/admin/roster/${id}`, { method: "DELETE" });
     load();
+  }
+
+  async function resetPassword(admissionNo: string) {
+    if (!confirm(`Reset the password for ${admissionNo}? A new temporary password will be generated.`)) return;
+    setResettingFor(admissionNo);
+    setTempPasswordResult(null);
+    try {
+      const res = await fetch("/api/admin/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admissionNo }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        alert(result.error || "Something went wrong.");
+        return;
+      }
+      setTempPasswordResult({ admissionNo, password: result.tempPassword });
+    } finally {
+      setResettingFor(null);
+    }
   }
 
   const filtered = roster.filter(
@@ -108,6 +131,24 @@ export default function ClassListClient({ isAdmin }: { isAdmin: boolean }) {
         </form>
       )}
 
+      {tempPasswordResult && (
+        <div className="mt-6 rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm">
+          <p className="font-semibold text-emerald-800">
+            New password for {tempPasswordResult.admissionNo}:
+          </p>
+          <p className="mt-1 font-mono text-lg text-emerald-900">{tempPasswordResult.password}</p>
+          <p className="mt-1 text-xs text-emerald-700">
+            Share this with the student directly. It won&apos;t be shown again.
+          </p>
+          <button
+            onClick={() => setTempPasswordResult(null)}
+            className="mt-2 text-xs font-semibold text-emerald-800 hover:underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <input
         type="text"
         placeholder="Search by name or admission number..."
@@ -129,12 +170,21 @@ export default function ClassListClient({ isAdmin }: { isAdmin: boolean }) {
               <div className="flex items-center gap-4">
                 {r.contact && <span className="text-gray-500">{r.contact}</span>}
                 {isAdmin && (
-                  <button
-                    onClick={() => removeStudent(r.id)}
-                    className="text-xs font-semibold text-red-600 hover:underline"
-                  >
-                    Remove
-                  </button>
+                  <>
+                    <button
+                      onClick={() => resetPassword(r.admission_no)}
+                      disabled={resettingFor === r.admission_no}
+                      className="text-xs font-semibold text-navy hover:underline disabled:opacity-50"
+                    >
+                      {resettingFor === r.admission_no ? "Resetting..." : "Reset Password"}
+                    </button>
+                    <button
+                      onClick={() => removeStudent(r.id)}
+                      className="text-xs font-semibold text-red-600 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </>
                 )}
               </div>
             </div>

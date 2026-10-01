@@ -1,7 +1,19 @@
+﻿"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { announcements } from "@/lib/data";
+
+type Announcement = { id: number; title: string; category: string; date: string; excerpt: string };
 
 export default function AnnouncementsPreview() {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+
+  useEffect(() => {
+    fetch("/api/announcements")
+      .then((res) => (res.ok ? res.json() : { announcements: [] }))
+      .then((data) => setAnnouncements((data.announcements || []).slice(0, 3)));
+  }, []);
+
   return (
     <section className="mx-auto max-w-6xl px-4 py-16">
       <div className="mb-8 flex items-end justify-between">
@@ -25,6 +37,9 @@ export default function AnnouncementsPreview() {
             <p className="mt-2 text-sm text-gray-600">{a.excerpt}</p>
           </div>
         ))}
+        {announcements.length === 0 && (
+          <p className="text-sm text-gray-400">No announcements yet.</p>
+        )}
       </div>
 
       <Link href="/announcements" className="mt-6 block text-sm font-semibold text-navy hover:text-gold sm:hidden">

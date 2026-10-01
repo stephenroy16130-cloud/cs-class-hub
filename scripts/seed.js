@@ -3,16 +3,26 @@ const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const path = require("path");
 
+function splitStatements(schema) {
+  return schema
+    .split(";")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
 async function main() {
   const schema = fs.readFileSync(path.join(__dirname, "..", "db", "schema.sql"), "utf8");
-  await sql.query(schema);
-  console.log("Schema applied.");
+  const statements = splitStatements(schema);
+  for (const statement of statements) {
+    await sql.query(statement);
+  }
+  console.log(`Schema applied (${statements.length} statements).`);
 
   const adminEmail = process.env.SEED_ADMIN_EMAIL || "stephen@example.com";
   const adminPassword = process.env.SEED_ADMIN_PASSWORD || "changeme123";
   const passwordHash = await bcrypt.hash(adminPassword, 10);
 
-  const adminResult = await sql`
+  await sql`
     INSERT INTO users (role, name, email, password_hash)
     VALUES ('admin', 'Stephen', ${adminEmail}, ${passwordHash})
     ON CONFLICT (email) DO NOTHING
@@ -35,8 +45,22 @@ async function main() {
     if (result.rows.length > 0) inserted++;
     else skipped++;
   }
+  console.log(`Roster seeded: ${inserted} inserted, ${skipped} skipped.`);
 
-  console.log(`Roster seeded: ${inserted} inserted, ${skipped} skipped (duplicates or already existed).`);
+  const existingAnnouncements = await sql`SELECT id FROM announcements LIMIT 1`;
+  if (existingAnnouncements.rows.length === 0) {
+    const sample = [
+      { title: "COMP 103 Assignment Deadline Extended", category: "Academic", excerpt: "Following requests from group leaders, the deadline has been extended to Monday." },
+      { title: "Class Representative Elections Results", category: "Administrative", excerpt: "Thank you to everyone who voted. Full results are posted on the announcements page." },
+      { title: "Welcome Back Social This Friday", category: "Social", excerpt: "Join your classmates for snacks and games in the common room at 5pm." },
+    ];
+    for (const a of sample) {
+      await sql`INSERT INTO announcements (title, category, excerpt) VALUES (${a.title}, ${a.category}, ${a.excerpt})`;
+    }
+    console.log("Sample announcements seeded.");
+  } else {
+    console.log("Announcements already exist, skipping sample seed.");
+  }
 }
 
 main()

@@ -13,7 +13,7 @@ export default function AboutPage() {
         <h2 className="font-serif text-xl font-semibold text-navy">Leadership Team</h2>
         <ul className="mt-3 list-disc space-y-1 pl-5 text-gray-700">
           <li>Stephen &mdash; Class President</li>
-          <li>Assistant Name &mdash; Class Assistant</li>
+          <li>Virginia Chemutai &mdash; Class Assistant</li>
           <li>24 Group Leaders across Groups 01&ndash;24</li>
         </ul>
       </div>

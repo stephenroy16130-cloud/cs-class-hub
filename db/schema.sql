@@ -1,6 +1,6 @@
 ﻿CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
-  role TEXT NOT NULL CHECK (role IN (''admin'', ''student'')),
+  role TEXT NOT NULL CHECK (role IN ('admin', 'student')),
   admission_no TEXT UNIQUE,
   name TEXT NOT NULL,
   email TEXT UNIQUE,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS join_requests (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id),
   requested_group_id INTEGER NOT NULL,
-  status TEXT NOT NULL DEFAULT ''pending'' CHECK (status IN (''pending'', ''approved'', ''rejected'')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS attendance_records (
   admission_no TEXT NOT NULL,
   class_date DATE NOT NULL,
   unit TEXT NOT NULL,
-  status TEXT NOT NULL CHECK (status IN (''present'', ''absent'')),
+  status TEXT NOT NULL CHECK (status IN ('present', 'absent')),
   marked_by INTEGER REFERENCES users(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(admission_no, class_date)
@@ -45,3 +45,44 @@ CREATE TABLE IF NOT EXISTS attendance_records (
 
 CREATE INDEX IF NOT EXISTS idx_attendance_admission_date ON attendance_records (admission_no, class_date);
 CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance_records (class_date);
+
+CREATE TABLE IF NOT EXISTS group_info (
+  group_id INTEGER PRIMARY KEY,
+  leader_admission_no TEXT,
+  whatsapp_link TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS announcements (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('Urgent', 'Academic', 'Administrative', 'Social')),
+  excerpt TEXT NOT NULL,
+  posted_by INTEGER REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_announcements_created ON announcements (created_at DESC);
+
+CREATE TABLE IF NOT EXISTS resources (
+  id SERIAL PRIMARY KEY,
+  unit TEXT NOT NULL,
+  title TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('Notes', 'Slides', 'Past Paper', 'Textbook', 'Link')),
+  url TEXT NOT NULL,
+  posted_by INTEGER REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_resources_unit ON resources (unit);
+
+CREATE TABLE IF NOT EXISTS group_messages (
+  id SERIAL PRIMARY KEY,
+  group_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  sender_name TEXT NOT NULL,
+  body TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_group_messages_group ON group_messages (group_id, created_at);
