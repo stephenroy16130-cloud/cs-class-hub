@@ -11,7 +11,7 @@
   const existing = await registration.pushManager.getSubscription();
   const subscription = existing || (await registration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(publicKey),
+    applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
   }));
 
   await fetch("/api/push/subscribe", {
@@ -33,3 +33,4 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   }
   return outputArray;
 }
+

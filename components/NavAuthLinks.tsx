@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import NotificationBell from "@/components/NotificationBell";
@@ -30,3 +30,4 @@ export default function NavAuthLinks({ session }: Props) {
     </div>
   );
 }
+

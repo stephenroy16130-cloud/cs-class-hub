@@ -7,6 +7,7 @@ import Link from "next/link";
 export default function SignupPage() {
   const router = useRouter();
   const [admissionNo, setAdmissionNo] = useState("");
+  const [contact, setContact] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -31,7 +32,7 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ admissionNo, password }),
+        body: JSON.stringify({ admissionNo, contact, password }),
       });
       const data = await res.json();
 
@@ -73,7 +74,7 @@ export default function SignupPage() {
       <p className="text-sm font-semibold uppercase tracking-widest text-gold">Get Started</p>
       <h1 className="mt-1 font-serif text-3xl font-bold text-navy">Create Your Account</h1>
       <p className="mt-2 text-sm text-gray-600">
-        Use your admission number to verify you&apos;re part of CS 1.1.
+        Use your admission number and the phone number on your class roster to verify it&apos;s really you.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
@@ -87,6 +88,21 @@ export default function SignupPage() {
             onChange={(e) => setAdmissionNo(e.target.value)}
             className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm"
           />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-navy">Phone Number on Roster</label>
+          <input
+            type="text"
+            required
+            placeholder="07XXXXXXXX"
+            value={contact}
+            onChange={(e) => setContact(e.target.value)}
+            className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Must match the phone number the class rep has on file for your admission number.
+          </p>
         </div>
 
         <div>

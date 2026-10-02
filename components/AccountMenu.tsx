@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useInstallPrompt } from "@/lib/useInstallPrompt";
+import { isStaff } from "@/lib/auth";
 import { useClickOutside } from "@/lib/useClickOutside";
 
-type Session = { userId: number; role: "admin" | "student"; name: string; admissionNo: string | null } | null;
+type Session = { userId: number; role: "admin" | "assistant" | "student"; name: string; admissionNo: string | null } | null;
 
 export default function AccountMenu() {
   const [session, setSession] = useState<Session>(null);
@@ -73,7 +74,7 @@ export default function AccountMenu() {
             <Link href="/profile" onClick={() => setOpen(false)} className="px-4 py-2 text-navy hover:bg-gold-light">
               Edit Profile
             </Link>
-            {session.role === "admin" && (
+            {isStaff(session.role) && (
               <Link href="/admin" onClick={() => setOpen(false)} className="px-4 py-2 text-navy hover:bg-gold-light">
                 Admin Panel
               </Link>
@@ -110,4 +111,6 @@ export default function AccountMenu() {
     </div>
   );
 }
+
+
 

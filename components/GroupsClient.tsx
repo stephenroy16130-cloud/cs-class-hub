@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+import { isStaff } from "@/lib/auth";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -99,7 +101,7 @@ export default function GroupsClient({ role, userId }: { role: "admin" | "assist
             {data.groups.reduce((n, g) => n + g.members.length, 0)} members registered
           </p>
         </div>
-        {role === "admin" && (
+        {isStaff(role) && (
           <Link href="/admin" className="text-sm font-semibold text-navy hover:text-gold">
             Manage in Admin Panel &rarr;
           </Link>
@@ -189,7 +191,7 @@ export default function GroupsClient({ role, userId }: { role: "admin" | "assist
                     </button>
                   )}
 
-                  {(isYours || role === "admin") && (
+                  {(isYours || isStaff(role)) && (
                     <div className="mt-3">
                       <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">Group Chat</p>
                       <GroupChat groupId={g.id} currentUserId={userId} />
@@ -204,3 +206,8 @@ export default function GroupsClient({ role, userId }: { role: "admin" | "assist
     </section>
   );
 }
+
+
+
+
+

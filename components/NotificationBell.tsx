@@ -76,7 +76,7 @@ export default function NotificationBell() {
           <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
             <p className="text-sm font-semibold text-navy">Notifications</p>
             {pushStatus === "idle" && (
-              <button onClick={handleEnablePush} className="text-xs font-semibold text-gold hover:underline">
+              <button onClick={handleEnablePush} className="rounded-full bg-gold px-3 py-1 text-xs font-semibold text-white hover:opacity-90">
                 Enable push
               </button>
             )}
@@ -101,3 +101,4 @@ export default function NotificationBell() {
     </div>
   );
 }
+

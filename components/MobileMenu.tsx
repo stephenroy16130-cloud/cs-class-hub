@@ -1,4 +1,6 @@
-"use client";
+﻿"use client";
+
+import { isStaff } from "@/lib/auth";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -58,7 +60,7 @@ export default function MobileMenu({ links, session }: { links: NavLink[]; sessi
           {session ? (
             <>
               <span className="px-3 py-1 text-xs text-gray-400">Signed in as {session.name}</span>
-              {session.role === "admin" && (
+              {isStaff(session.role) && (
                 <Link
                   href="/admin"
                   onClick={() => setOpen(false)}
@@ -108,3 +110,8 @@ export default function MobileMenu({ links, session }: { links: NavLink[]; sessi
     </div>
   );
 }
+
+
+
+
+
