@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { colorForUnit } from "@/lib/colors";
@@ -115,10 +115,10 @@ export default function TimetableGrid({ isAdmin }: { isAdmin: boolean }) {
     for (const day of days) {
       const daySessions = sessions.filter((s) => s.day === day).sort((a, b) => a.time.localeCompare(b.time));
       doc.setFontSize(12);
-      doc.setFont(undefined, "bold");
+      doc.setFont("", "bold");
       doc.text(day, 14, y);
       y += 6;
-      doc.setFont(undefined, "normal");
+      doc.setFont("", "normal");
       doc.setFontSize(10);
       if (daySessions.length === 0) {
         doc.text("No classes", 18, y);

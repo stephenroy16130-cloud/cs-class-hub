@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import NotificationBell from "@/components/NotificationBell";
 
 type Props = {
-  session: { name: string; role: "admin" | "student" } | null;
+  session: { name: string; role: "admin" | "assistant" | "student" } | null;
 };
 
 export default function NavAuthLinks({ session }: Props) {

@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 type NavLink = { href: string; label: string };
-type Session = { name: string; role: "admin" | "student" } | null;
+type Session = { name: string; role: "admin" | "assistant" | "student" } | null;
 
 export default function MobileMenu({ links, session }: { links: NavLink[]; session: Session }) {
   const [open, setOpen] = useState(false);

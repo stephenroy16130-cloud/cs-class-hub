@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -22,7 +22,7 @@ type GroupsData = {
   pendingRequestGroupId: number | null;
 };
 
-export default function GroupsClient({ role, userId }: { role: "admin" | "student"; userId: number | null }) {
+export default function GroupsClient({ role, userId }: { role: "admin" | "assistant" | "student"; userId: number | null }) {
   const [data, setData] = useState<GroupsData | null>(null);
   const [query, setQuery] = useState("");
   const [openGroup, setOpenGroup] = useState<number | null>(null);
