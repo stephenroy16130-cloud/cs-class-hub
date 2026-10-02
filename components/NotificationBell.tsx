@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useClickOutside } from "@/lib/useClickOutside";
+import { subscribeToPush } from "@/lib/pushClient";
 
 type Notification = { id: number; type: string; title: string; body: string | null; read: boolean; time: string };
 
@@ -10,6 +11,14 @@ export default function NotificationBell() {
   const bellRef = useClickOutside<HTMLDivElement>(() => setOpen(false), open);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pushStatus, setPushStatus] = useState<"idle" | "asking" | "enabled" | "denied">("idle");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "granted") setPushStatus("enabled");
+      else if (Notification.permission === "denied") setPushStatus("denied");
+    }
+  }, []);
 
   async function load() {
     try {
@@ -43,6 +52,12 @@ export default function NotificationBell() {
     }
   }
 
+  async function handleEnablePush() {
+    setPushStatus("asking");
+    const ok = await subscribeToPush();
+    setPushStatus(ok ? "enabled" : "denied");
+  }
+
   return (
     <div ref={bellRef} className="relative">
       <button onClick={handleOpen} aria-label="Notifications" className="relative rounded-full p-2 hover:bg-gray-100">
@@ -58,8 +73,16 @@ export default function NotificationBell() {
 
       {open && (
         <div className="absolute right-0 top-10 z-50 w-72 rounded-lg border border-gray-200 bg-white shadow-xl">
-          <div className="border-b border-gray-100 px-4 py-2">
+          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
             <p className="text-sm font-semibold text-navy">Notifications</p>
+            {pushStatus === "idle" && (
+              <button onClick={handleEnablePush} className="text-xs font-semibold text-gold hover:underline">
+                Enable push
+              </button>
+            )}
+            {pushStatus === "asking" && <span className="text-xs text-gray-400">Asking...</span>}
+            {pushStatus === "enabled" && <span className="text-xs text-emerald-600">Push on</span>}
+            {pushStatus === "denied" && <span className="text-xs text-gray-400">Push off</span>}
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 && (
@@ -78,4 +101,3 @@ export default function NotificationBell() {
     </div>
   );
 }
-

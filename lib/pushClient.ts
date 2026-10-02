@@ -1,4 +1,4 @@
-export async function subscribeToPush(): Promise<boolean> {
+﻿export async function subscribeToPush(): Promise<boolean> {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
 
   const permission = await Notification.requestPermission();
@@ -11,7 +11,7 @@ export async function subscribeToPush(): Promise<boolean> {
   const existing = await registration.pushManager.getSubscription();
   const subscription = existing || (await registration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(publicKey).buffer as ArrayBuffer,
+    applicationServerKey: urlBase64ToUint8Array(publicKey),
   }));
 
   await fetch("/api/push/subscribe", {
