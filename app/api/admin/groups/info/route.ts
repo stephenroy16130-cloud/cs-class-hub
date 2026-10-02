@@ -1,11 +1,11 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { verifySessionToken } from "@/lib/auth";
+import { verifySessionToken, isStaff } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   const token = req.cookies.get("session")?.value;
   const session = token ? await verifySessionToken(token) : null;
-  if (!session || session.role !== "admin") {
+  if (!session || !isStaff(session.role)) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
@@ -26,3 +26,4 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ success: true });
 }
+

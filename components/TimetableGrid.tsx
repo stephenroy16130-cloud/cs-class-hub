@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { colorForUnit } from "@/lib/colors";
+import { timetableNote, timetableLastUpdated } from "@/lib/data";
+import jsPDF from "jspdf";
 
 type Session = {
   id: number;
@@ -25,12 +27,21 @@ export default function TimetableGrid({ isAdmin }: { isAdmin: boolean }) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function load() {
     setLoading(true);
-    const res = await fetch("/api/timetable");
-    if (res.ok) setSessions((await res.json()).sessions);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/timetable");
+      if (res.ok) {
+        const data = await res.json();
+        setSessions(data.sessions || []);
+      }
+    } catch {
+      // keep previous data on a transient network error
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -46,34 +57,85 @@ export default function TimetableGrid({ isAdmin }: { isAdmin: boolean }) {
   function startAdd() {
     setEditingId(null);
     setForm(emptyForm);
+    setMessage("");
     setShowForm(true);
   }
 
   function startEdit(s: Session) {
     setEditingId(s.id);
     setForm({ day: s.day, time: s.time, unit: s.unit, lecturer: s.lecturer, venue: s.venue, mode: s.mode });
+    setMessage("");
     setShowForm(true);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage("");
-    const url = editingId ? `/api/admin/timetable/${editingId}` : "/api/admin/timetable";
-    const method = editingId ? "PATCH" : "POST";
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    if (!res.ok) {
-      const result = await res.json();
-      setMessage(result.error || "Something went wrong.");
-      return;
+    setSubmitting(true);
+    try {
+      const url = editingId ? `/api/admin/timetable/${editingId}` : "/api/admin/timetable";
+      const method = editingId ? "PATCH" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      let result: any = {};
+      try {
+        result = await res.json();
+      } catch {
+        result = {};
+      }
+
+      if (!res.ok) {
+        setMessage(result.error || "Something went wrong. Please try again.");
+        return;
+      }
+
+      setShowForm(false);
+      setEditingId(null);
+      setForm(emptyForm);
+      await load();
+    } catch {
+      setMessage("Could not reach the server. Check your connection and try again.");
+    } finally {
+      setSubmitting(false);
     }
-    setShowForm(false);
-    setEditingId(null);
-    setForm(emptyForm);
-    load();
+  }
+
+  function downloadPdf() {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("CS 1.1 - Weekly Timetable", 14, 16);
+    doc.setFontSize(10);
+    doc.text(`Last updated: ${timetableLastUpdated}`, 14, 23);
+
+    let y = 34;
+    for (const day of days) {
+      const daySessions = sessions.filter((s) => s.day === day).sort((a, b) => a.time.localeCompare(b.time));
+      doc.setFontSize(12);
+      doc.setFont(undefined, "bold");
+      doc.text(day, 14, y);
+      y += 6;
+      doc.setFont(undefined, "normal");
+      doc.setFontSize(10);
+      if (daySessions.length === 0) {
+        doc.text("No classes", 18, y);
+        y += 6;
+      }
+      for (const s of daySessions) {
+        doc.text(`${s.time} - ${s.unit} (${s.lecturer}, ${s.venue}, ${s.mode})`, 18, y);
+        y += 6;
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+      }
+      y += 4;
+    }
+
+    doc.save("cs-1.1-timetable.pdf");
   }
 
   async function handleDelete(id: number) {
@@ -88,6 +150,7 @@ export default function TimetableGrid({ isAdmin }: { isAdmin: boolean }) {
         <div>
           <p className="text-sm font-semibold uppercase tracking-widest text-gold">Schedule</p>
           <h1 className="mt-1 font-serif text-3xl font-bold text-navy">Weekly Timetable</h1>
+          <p className="mt-1 text-sm text-gray-500">Last updated: {timetableLastUpdated}</p>
         </div>
         <div className="flex gap-2">
           {isAdmin && (
@@ -99,7 +162,7 @@ export default function TimetableGrid({ isAdmin }: { isAdmin: boolean }) {
             </button>
           )}
           <button
-            onClick={() => window.print()}
+            onClick={downloadPdf}
             className="print:hidden rounded-md border border-navy px-4 py-2 text-sm font-semibold text-navy transition hover:bg-navy hover:text-white"
           >
             Download as PDF
@@ -150,8 +213,8 @@ export default function TimetableGrid({ isAdmin }: { isAdmin: boolean }) {
           </select>
           {message && <p className="text-sm text-red-600 sm:col-span-2">{message}</p>}
           <div className="flex gap-2 sm:col-span-2">
-            <button type="submit" className="rounded-md bg-navy px-4 py-2 text-sm font-semibold text-white">
-              {editingId ? "Save Changes" : "Add Session"}
+            <button type="submit" disabled={submitting} className="rounded-md bg-navy px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+              {submitting ? "Saving..." : editingId ? "Save Changes" : "Add Session"}
             </button>
             <button type="button" onClick={() => setShowForm(false)} className="rounded-md border border-gray-300 px-4 py-2 text-sm">
               Cancel
@@ -205,6 +268,12 @@ export default function TimetableGrid({ isAdmin }: { isAdmin: boolean }) {
           })}
         </div>
       )}
+
+      <div className="mt-8 rounded-lg border border-gold-light bg-gold-light/40 p-4 text-sm text-navy">
+        <p className="font-semibold">Notes</p>
+        <p className="mt-1 text-gray-700">{timetableNote}</p>
+      </div>
     </section>
   );
 }
+

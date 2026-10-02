@@ -1,6 +1,6 @@
 ﻿CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
-  role TEXT NOT NULL CHECK (role IN ('admin', 'student')),
+  role TEXT NOT NULL CHECK (role IN ('admin', 'assistant', 'student')),
   admission_no TEXT UNIQUE,
   name TEXT NOT NULL,
   email TEXT UNIQUE,
@@ -113,3 +113,15 @@ CREATE TABLE IF NOT EXISTS timetable_sessions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_timetable_day ON timetable_sessions (day);
+
+
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  endpoint TEXT NOT NULL UNIQUE,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_subs_user ON push_subscriptions (user_id);

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { matchIntent } from "@/lib/chatbot";
+import { useClickOutside } from "@/lib/useClickOutside";
 import { getNextSession, type TimetableSession } from "@/lib/schedule";
 
 type Message = { id: number; from: "bot" | "user"; text: string; link?: { href: string; label: string } };
@@ -19,6 +20,7 @@ export default function ChatWidget() {
   const [sessions, setSessions] = useState<TimetableSession[]>([]);
   const [thinking, setThinking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const widgetRef = useClickOutside<HTMLDivElement>(() => setOpen(false), open);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -171,7 +173,7 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div ref={widgetRef} className="fixed bottom-5 right-5 z-50">
       {open && (
         <div className="mb-3 flex h-[28rem] w-80 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl sm:w-96">
           <div className="flex items-center justify-between bg-navy px-4 py-3">
@@ -235,3 +237,4 @@ export default function ChatWidget() {
     </div>
   );
 }
+

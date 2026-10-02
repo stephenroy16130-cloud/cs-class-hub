@@ -1,7 +1,6 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifySessionToken, isStaff } from "@/lib/auth";
-import { withRetry } from "@/lib/db";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const token = req.cookies.get("session")?.value;
@@ -11,21 +10,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const { id } = await params;
-  const { day, time, unit, lecturer, venue, mode } = await req.json();
-
-  try {
-    await withRetry(() => sql`
-      UPDATE timetable_sessions
-      SET day = ${day}, time = ${time}, unit = ${unit}, lecturer = ${lecturer}, venue = ${venue}, mode = ${mode}
-      WHERE id = ${id}
-    `);
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json(
-      { error: "The database didn't respond in time. Please try again in a moment." },
-      { status: 503 }
-    );
+  const { name, contact } = await req.json();
+  if (!name) {
+    return NextResponse.json({ error: "Name is required." }, { status: 400 });
   }
+
+  await sql`UPDATE roster SET name = ${name}, contact = ${contact || null} WHERE id = ${id}`;
+
+  return NextResponse.json({ success: true });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -36,14 +28,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   }
 
   const { id } = await params;
-  try {
-    await withRetry(() => sql`DELETE FROM timetable_sessions WHERE id = ${id}`);
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json(
-      { error: "The database didn't respond in time. Please try again in a moment." },
-      { status: 503 }
-    );
-  }
-}
+  await sql`DELETE FROM roster WHERE id = ${id}`;
 
+  return NextResponse.json({ success: true });
+}

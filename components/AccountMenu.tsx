@@ -1,16 +1,18 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useInstallPrompt } from "@/lib/useInstallPrompt";
+import { useClickOutside } from "@/lib/useClickOutside";
 
 type Session = { userId: number; role: "admin" | "student"; name: string; admissionNo: string | null } | null;
 
 export default function AccountMenu() {
-  const router = useRouter();
   const [session, setSession] = useState<Session>(null);
   const [avatarData, setAvatarData] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const { canInstall, install } = useInstallPrompt();
+  const menuRef = useClickOutside<HTMLDivElement>(() => setOpen(false), open);
 
   async function loadSession() {
     const res = await fetch("/api/auth/me");
@@ -42,6 +44,11 @@ export default function AccountMenu() {
     window.location.href = "/";
   }
 
+  async function handleInstall() {
+    await install();
+    setOpen(false);
+  }
+
   if (!session) return null;
 
   const initials = session.name
@@ -52,7 +59,7 @@ export default function AccountMenu() {
     .toUpperCase();
 
   return (
-    <div className="fixed bottom-5 left-5 z-50">
+    <div ref={menuRef} className="fixed bottom-5 left-5 z-50">
       {open && (
         <div className="mb-3 w-56 rounded-lg border border-gray-200 bg-white shadow-xl">
           <div className="border-b border-gray-100 px-4 py-3">
@@ -74,6 +81,12 @@ export default function AccountMenu() {
             <Link href="/class-list" onClick={() => setOpen(false)} className="px-4 py-2 text-navy hover:bg-gold-light">
               Class List
             </Link>
+            {canInstall && (
+              <button onClick={handleInstall} className="flex items-center gap-2 border-t border-gray-100 px-4 py-2 text-left text-navy hover:bg-gold-light">
+                <span>Install App</span>
+                <span className="rounded-full bg-gold-light px-1.5 py-0.5 text-[10px] font-semibold text-gold">NEW</span>
+              </button>
+            )}
             <button onClick={handleLogout} className="border-t border-gray-100 px-4 py-2 text-left text-red-600 hover:bg-red-50">
               Log Out
             </button>
@@ -97,3 +110,4 @@ export default function AccountMenu() {
     </div>
   );
 }
+

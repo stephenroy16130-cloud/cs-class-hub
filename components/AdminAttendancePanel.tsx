@@ -1,11 +1,12 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { toLocalDateKey } from "@/lib/date";
 
 type Student = { admissionNo: string; name: string; status: "present" | "absent" | null };
 
 export default function AdminAttendancePanel() {
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(toLocalDateKey(new Date()));
   const [unit, setUnit] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
@@ -87,6 +88,12 @@ export default function AdminAttendancePanel() {
             className="rounded-md border border-gray-300 px-3 py-2 text-sm"
           />
         </div>
+        <button
+          onClick={load}
+          className="rounded-md border border-navy px-3 py-2 text-sm font-semibold text-navy transition hover:bg-navy hover:text-white"
+        >
+          Refresh
+        </button>
         <input
           type="text"
           placeholder="Search student..."
@@ -166,3 +173,5 @@ export default function AdminAttendancePanel() {
     </div>
   );
 }
+
+

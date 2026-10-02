@@ -1,20 +1,26 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { useClickOutside } from "@/lib/useClickOutside";
 
 type Notification = { id: number; type: string; title: string; body: string | null; read: boolean; time: string };
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
+  const bellRef = useClickOutside<HTMLDivElement>(() => setOpen(false), open);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   async function load() {
-    const res = await fetch("/api/notifications");
-    if (res.ok) {
-      const data = await res.json();
-      setNotifications(data.notifications);
-      setUnreadCount(data.unreadCount);
+    try {
+      const res = await fetch("/api/notifications");
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications || []);
+        setUnreadCount(data.unreadCount || 0);
+      }
+    } catch {
+      // network hiccup; keep previous state, try again next interval
     }
   }
 
@@ -27,14 +33,18 @@ export default function NotificationBell() {
   async function handleOpen() {
     setOpen((o) => !o);
     if (!open && unreadCount > 0) {
-      await fetch("/api/notifications/read-all", { method: "POST" });
-      setUnreadCount(0);
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      try {
+        await fetch("/api/notifications/read-all", { method: "POST" });
+        setUnreadCount(0);
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      } catch {
+        // ignore; will retry on next poll
+      }
     }
   }
 
   return (
-    <div className="relative">
+    <div ref={bellRef} className="relative">
       <button onClick={handleOpen} aria-label="Notifications" className="relative rounded-full p-2 hover:bg-gray-100">
         <svg className="h-5 w-5 text-navy" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -68,3 +78,4 @@ export default function NotificationBell() {
     </div>
   );
 }
+

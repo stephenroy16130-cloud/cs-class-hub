@@ -5,7 +5,7 @@ const secretKey = () => new TextEncoder().encode(process.env.AUTH_SECRET || "dev
 
 export type SessionPayload = {
   userId: number;
-  role: "admin" | "student";
+  role: "admin" | "assistant" | "student";
   name: string;
   admissionNo: string | null;
 };
@@ -25,6 +25,10 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
   } catch {
     return null;
   }
+}
+
+export function isStaff(role: string): boolean {
+  return role === "admin" || role === "assistant";
 }
 
 export const SESSION_COOKIE_NAME = SESSION_COOKIE;

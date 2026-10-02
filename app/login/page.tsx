@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +24,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier, password }),
+        body: JSON.stringify({ identifier, password, rememberMe }),
       });
       const data = await res.json();
 
@@ -51,11 +52,13 @@ export default function LoginPage() {
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
+      <form onSubmit={handleSubmit} autoComplete="on" className="mt-8 flex flex-col gap-4">
         <div>
           <label className="mb-1 block text-sm font-medium text-navy">Admission Number or Email</label>
           <input
             type="text"
+            name="identifier"
+            autoComplete="username"
             required
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
@@ -73,6 +76,8 @@ export default function LoginPage() {
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
+              name="password"
+              autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -87,6 +92,16 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+
+        <label className="flex items-center gap-2 text-sm text-gray-600">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="rounded border-gray-300"
+          />
+          Keep me logged in on this device
+        </label>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 

@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Message = { id: number; userId: number; senderName: string; body: string; time: string };
 
@@ -9,7 +9,6 @@ export default function GroupChat({ groupId, currentUserId }: { groupId: number;
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
 
   async function load() {
     const res = await fetch(`/api/groups/${groupId}/messages`);
@@ -27,10 +26,6 @@ export default function GroupChat({ groupId, currentUserId }: { groupId: number;
     const interval = setInterval(load, 4000);
     return () => clearInterval(interval);
   }, [groupId]);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +61,6 @@ export default function GroupChat({ groupId, currentUserId }: { groupId: number;
             </div>
           </div>
         ))}
-        <div ref={bottomRef} />
       </div>
       <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-gray-200 p-2">
         <input
