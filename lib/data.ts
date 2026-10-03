@@ -114,4 +114,4 @@ export const resources: Resource[] = [
   { id: 9, unit: "COMS 101", title: "Communication Skills - Slides", type: "Slides", url: "https://drive.google.com/your-folder-link" },
 ];
 
-export const resourceUnits = ["COMP 102", "COMP 103", "COMP 107", "MATH 112", "PHIL 104", "COMS 101"];
+export const resourceUnits = ["COMP 103", "COMP 107", "MATH 112", "PHIL 104", "COMS 101"];
