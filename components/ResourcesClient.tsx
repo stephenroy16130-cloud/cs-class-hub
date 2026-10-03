@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { resourceUnits } from "@/lib/data";
@@ -10,6 +10,7 @@ const typeStyles: Record<string, string> = {
   Slides: "bg-purple-50 text-purple-700 border-purple-200",
   "Past Paper": "bg-amber-50 text-amber-700 border-amber-200",
   Textbook: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  Assignment: "bg-orange-50 text-orange-700 border-orange-200",
   Link: "bg-gray-50 text-gray-700 border-gray-200",
 };
 
@@ -97,6 +98,7 @@ export default function ResourcesClient({ isAdmin }: { isAdmin: boolean }) {
             <option value="Slides">Slides</option>
             <option value="Past Paper">Past Paper</option>
             <option value="Textbook">Textbook</option>
+            <option value="Assignment">Assignment</option>
             <option value="Link">Link</option>
           </select>
           <input
