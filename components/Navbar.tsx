@@ -1,9 +1,10 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifySessionToken } from "@/lib/auth";
 import NavAuthLinks from "@/components/NavAuthLinks";
 import MobileMenu from "@/components/MobileMenu";
 import NavLinks from "@/components/NavLinks";
+import NotificationBell from "@/components/NotificationBell";
 
 const links = [
   { href: "/timetable", label: "Timetable" },
@@ -35,11 +36,13 @@ export default async function Navbar() {
 
         <NavLinks links={links} />
 
-        <div className="hidden md:block">
-          <NavAuthLinks session={sessionForClient} />
+        <div className="flex items-center gap-2">
+          {session && <NotificationBell />}
+          <div className="hidden md:block">
+            <NavAuthLinks session={sessionForClient} />
+          </div>
+          <MobileMenu links={links} session={sessionForClient} />
         </div>
-
-        <MobileMenu links={links} session={sessionForClient} />
       </div>
     </header>
   );

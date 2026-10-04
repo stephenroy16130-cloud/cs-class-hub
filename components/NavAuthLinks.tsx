@@ -1,7 +1,6 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import NotificationBell from "@/components/NotificationBell";
 
 type Props = {
   session: { name: string; role: "admin" | "assistant" | "student" } | null;
@@ -24,10 +23,7 @@ export default function NavAuthLinks({ session }: Props) {
     );
   }
 
-  return (
-    <div className="flex items-center gap-3">
-      <NotificationBell />
-    </div>
-  );
+  return null;
 }
+
 
