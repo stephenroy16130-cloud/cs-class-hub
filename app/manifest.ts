@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Computer Science 1.1 - Class Hub",
     short_name: "CS 1.1 Hub",
     description: "Timetables, announcements, resources and class coordination.",
-    start_url: "/dashboard",
+    start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#0f1f4b",
@@ -16,3 +16,4 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
   };
 }
+
