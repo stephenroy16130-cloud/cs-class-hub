@@ -1,7 +1,8 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifySessionToken, isStaff } from "@/lib/auth";
 import { getInPersonSessionForDate } from "@/lib/attendance";
+import { sendPushToUser } from "@/lib/push";
 
 export async function GET(req: NextRequest) {
   const token = req.cookies.get("session")?.value;
@@ -94,6 +95,13 @@ export async function POST(req: NextRequest) {
          SELECT uid, 'attendance', t, b
          FROM UNNEST($1::int[], $2::text[], $3::text[]) AS n(uid, t, b)`,
         [userIds, titles, bodies]
+      );
+
+      // fire push notifications in parallel (non-blocking)
+      await Promise.allSettled(
+        usersResult.rows.map((u, i) =>
+          sendPushToUser(u.id, titles[i], bodies[i], "/attendance")
+        )
       );
     }
 
