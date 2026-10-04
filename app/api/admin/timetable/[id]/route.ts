@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifySessionToken, isStaff } from "@/lib/auth";
@@ -29,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       SELECT id, 'timetable', ${title}, ${body} FROM users WHERE role = 'student'
     `;
 
-    sendPushToAllStudents(title, body, "/timetable").catch(() => {});
+    sendPushToAllStudents(title, body, "/timetable").catch(() => { });
 
     return NextResponse.json({ success: true });
   } catch {
@@ -63,7 +64,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         SELECT id, 'timetable', ${title}, ${body} FROM users WHERE role = 'student'
       `;
 
-      sendPushToAllStudents(title, body, "/timetable").catch(() => {});
+      sendPushToAllStudents(title, body, "/timetable").catch(() => { });
     }
 
     return NextResponse.json({ success: true });

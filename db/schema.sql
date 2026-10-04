@@ -136,3 +136,25 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_push_subs_user ON push_subscriptions (user_id);
+
+CREATE TABLE IF NOT EXISTS webauthn_credentials (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  credential_id TEXT NOT NULL UNIQUE,
+  public_key TEXT NOT NULL,
+  counter BIGINT NOT NULL DEFAULT 0,
+  device_label TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_webauthn_user ON webauthn_credentials (user_id);
+
+CREATE TABLE IF NOT EXISTS webauthn_challenges (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  challenge TEXT NOT NULL,
+  purpose TEXT NOT NULL CHECK (purpose IN ('register', 'login')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_webauthn_challenges_user ON webauthn_challenges (user_id);

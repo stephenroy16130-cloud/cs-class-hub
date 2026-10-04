@@ -1,10 +1,11 @@
 ﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { startRegistration } from "@simplewebauthn/browser";
+
+type Passkey = { id: number; deviceLabel: string; createdAt: string };
 
 export default function ProfilePage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [avatarData, setAvatarData] = useState<string | null>(null);
@@ -12,6 +13,10 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [passkeys, setPasskeys] = useState<Passkey[]>([]);
+  const [enrolling, setEnrolling] = useState(false);
+  const [passkeyMessage, setPasskeyMessage] = useState("");
 
   useEffect(() => {
     fetch("/api/profile")
@@ -22,7 +27,16 @@ export default function ProfilePage() {
         setRole(data.role);
         setAvatarData(data.avatarData);
       });
+    loadPasskeys();
   }, []);
+
+  async function loadPasskeys() {
+    const res = await fetch("/api/webauthn/list");
+    if (res.ok) {
+      const data = await res.json();
+      setPasskeys(data.passkeys || []);
+    }
+  }
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -89,6 +103,59 @@ export default function ProfilePage() {
     }
   }
 
+  async function handleEnrollPasskey() {
+    setEnrolling(true);
+    setPasskeyMessage("");
+    try {
+      const optionsRes = await fetch("/api/webauthn/register/options", { method: "POST" });
+      const options = await optionsRes.json();
+
+      if (!optionsRes.ok) {
+        setPasskeyMessage(options.error || "Could not start setup.");
+        setEnrolling(false);
+        return;
+      }
+
+      const registrationResponse = await startRegistration({ optionsJSON: options });
+
+      const deviceLabel =
+        navigator.userAgentData?.platform ||
+        (navigator.userAgent.includes("Android") ? "Android device" :
+         navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad") ? "iPhone/iPad" :
+         navigator.userAgent.includes("Mac") ? "Mac" :
+         navigator.userAgent.includes("Windows") ? "Windows PC" : "This device");
+
+      const verifyRes = await fetch("/api/webauthn/register/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ response: registrationResponse, deviceLabel }),
+      });
+      const verifyData = await verifyRes.json();
+
+      if (!verifyRes.ok) {
+        setPasskeyMessage(verifyData.error || "Could not save this device.");
+        return;
+      }
+
+      setPasskeyMessage("Biometric login set up for this device.");
+      loadPasskeys();
+    } catch (err: any) {
+      if (err?.name === "NotAllowedError") {
+        setPasskeyMessage("Setup was cancelled.");
+      } else {
+        setPasskeyMessage("This device doesn't support fingerprint/face login, or setup failed.");
+      }
+    } finally {
+      setEnrolling(false);
+    }
+  }
+
+  async function handleRemovePasskey(id: number) {
+    if (!confirm("Remove biometric login for this device?")) return;
+    await fetch(`/api/webauthn/${id}`, { method: "DELETE" });
+    loadPasskeys();
+  }
+
   const displayImage = preview ?? avatarData;
   const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
@@ -137,6 +204,36 @@ export default function ProfilePage() {
       >
         {saving ? "Saving..." : "Save Changes"}
       </button>
+
+      <div className="mt-10 border-t border-gray-200 pt-6">
+        <p className="font-serif text-lg font-semibold text-navy">Fingerprint / Face Login</p>
+        <p className="mt-1 text-sm text-gray-500">
+          Set up biometric sign-in on this device so you can log in without typing your password.
+        </p>
+
+        {passkeys.length > 0 && (
+          <div className="mt-4 flex flex-col gap-2">
+            {passkeys.map((p) => (
+              <div key={p.id} className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm">
+                <span className="text-navy">{p.deviceLabel}</span>
+                <button onClick={() => handleRemovePasskey(p.id)} className="text-xs font-semibold text-red-600 hover:underline">
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {passkeyMessage && <p className="mt-3 text-sm text-emerald-700">{passkeyMessage}</p>}
+
+        <button
+          onClick={handleEnrollPasskey}
+          disabled={enrolling}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border border-navy px-4 py-2 text-sm font-semibold text-navy transition hover:bg-navy hover:text-white disabled:opacity-50"
+        >
+          {enrolling ? "Setting up..." : "Set Up on This Device"}
+        </button>
+      </div>
     </section>
   );
 }
