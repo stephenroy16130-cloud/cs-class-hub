@@ -1,11 +1,9 @@
 ﻿"use client";
 
 import { isStaff } from "@/lib/auth";
-
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { maskAdmissionNo } from "@/lib/mask";
-import GroupChat from "@/components/GroupChat";
 import GroupsSkeleton from "@/components/GroupsSkeleton";
 
 type Member = { id: number; name: string; admissionNo: string };
@@ -159,11 +157,21 @@ export default function GroupsClient({ role, userId }: { role: "admin" | "assist
                       href={g.whatsappLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mb-3 inline-block rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+                      className="mb-3 mr-2 inline-block rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
                     >
                       Join WhatsApp Group
                     </a>
                   )}
+
+                  {(isYours || isStaff(role)) && (
+                    <Link
+                      href={`/groups/${g.id}/chat`}
+                      className="mb-3 inline-block rounded-md bg-navy px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+                    >
+                      Open Chat
+                    </Link>
+                  )}
+
                   <ul className="divide-y divide-gray-100 text-sm">
                     {g.members.map((m) => (
                       <li key={m.id} className="flex items-center justify-between py-2">
@@ -190,13 +198,6 @@ export default function GroupsClient({ role, userId }: { role: "admin" | "assist
                       {requesting === g.id ? "Sending..." : "Request to Join"}
                     </button>
                   )}
-
-                  {(isYours || isStaff(role)) && (
-                    <div className="mt-3">
-                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">Group Chat</p>
-                      <GroupChat groupId={g.id} currentUserId={userId} />
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -206,8 +207,3 @@ export default function GroupsClient({ role, userId }: { role: "admin" | "assist
     </section>
   );
 }
-
-
-
-
-

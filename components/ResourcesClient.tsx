@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { resourceUnits } from "@/lib/data";
@@ -138,13 +138,19 @@ export default function ResourcesClient({ isAdmin }: { isAdmin: boolean }) {
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {unitResources.map((r) => (
                     <div key={r.id} className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 text-sm transition hover:border-gold hover:bg-gold-light">
-                      <a href={r.url} target="_blank" rel="noopener noreferrer" className="font-medium text-navy">
-                        {r.title}
-                      </a>
+                      <span className="font-medium text-navy">{r.title}</span>
                       <div className="flex items-center gap-2">
                         <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${typeStyles[r.type]}`}>
                           {r.type}
                         </span>
+                        <a
+                          href={r.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-md bg-navy px-3 py-1 text-xs font-semibold text-white hover:opacity-90"
+                        >
+                          Open
+                        </a>
                         {isAdmin && (
                           <button onClick={() => deleteResource(r.id)} className="text-xs font-semibold text-red-600 hover:underline">
                             Delete
@@ -162,3 +168,4 @@ export default function ResourcesClient({ isAdmin }: { isAdmin: boolean }) {
     </section>
   );
 }
+

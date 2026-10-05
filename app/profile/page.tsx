@@ -140,10 +140,11 @@ export default function ProfilePage() {
       setPasskeyMessage("Biometric login set up for this device.");
       loadPasskeys();
     } catch (err: any) {
+      console.error("WebAuthn error:", err?.name, err?.message, err);
       if (err?.name === "NotAllowedError") {
         setPasskeyMessage("Setup was cancelled.");
       } else {
-        setPasskeyMessage("This device doesn't support fingerprint/face login, or setup failed.");
+        setPasskeyMessage(`Setup failed: ${err?.name || "Unknown"} - ${err?.message || "no details"}`);
       }
     } finally {
       setEnrolling(false);
@@ -237,3 +238,4 @@ export default function ProfilePage() {
     </section>
   );
 }
+
