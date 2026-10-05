@@ -12,6 +12,7 @@ export default function AccountMenu() {
   const [session, setSession] = useState<Session>(null);
   const [avatarData, setAvatarData] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [bioSupported, setBioSupported] = useState(false);
   const { canInstall, install } = useInstallPrompt();
   const menuRef = useClickOutside<HTMLDivElement>(() => setOpen(false), open);
 
@@ -33,6 +34,9 @@ export default function AccountMenu() {
 
   useEffect(() => {
     loadSession();
+    if (typeof window !== "undefined" && window.PublicKeyCredential) {
+      setBioSupported(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -82,6 +86,15 @@ export default function AccountMenu() {
             <Link href="/class-list" onClick={() => setOpen(false)} className="px-4 py-2 text-navy hover:bg-gold-light">
               Class List
             </Link>
+            {bioSupported && (
+              <Link
+                href="/profile"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 border-t border-gray-100 px-4 py-2 text-navy hover:bg-gold-light"
+              >
+                <span>Set Up Fingerprint / Face</span>
+              </Link>
+            )}
             {canInstall && (
               <button onClick={handleInstall} className="flex items-center gap-2 border-t border-gray-100 px-4 py-2 text-left text-navy hover:bg-gold-light">
                 <span>Install App</span>
@@ -111,6 +124,3 @@ export default function AccountMenu() {
     </div>
   );
 }
-
-
-
