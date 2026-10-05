@@ -119,7 +119,7 @@ export default function ProfilePage() {
       const registrationResponse = await startRegistration({ optionsJSON: options });
 
       const deviceLabel =
-        navigator.userAgentData?.platform ||
+        (navigator as any).userAgentData?.platform ||
         (navigator.userAgent.includes("Android") ? "Android device" :
          navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad") ? "iPhone/iPad" :
          navigator.userAgent.includes("Mac") ? "Mac" :
@@ -238,4 +238,5 @@ export default function ProfilePage() {
     </section>
   );
 }
+
 
