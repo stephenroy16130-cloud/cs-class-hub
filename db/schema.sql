@@ -158,3 +158,5 @@ CREATE TABLE IF NOT EXISTS webauthn_challenges (
 );
 
 CREATE INDEX IF NOT EXISTS idx_webauthn_challenges_user ON webauthn_challenges (user_id);
+
+ALTER TABLE attendance_records ADD COLUMN IF NOT EXISTS session_id INTEGER REFERENCES timetable_sessions(id);

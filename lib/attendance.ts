@@ -6,13 +6,19 @@ export const toDateKey = toLocalDateKey;
 
 const weekdayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-export async function getInPersonSessionForDate(date: Date): Promise<{ unit: string; time: string } | null> {
+export type InPersonSession = { id: number; unit: string; time: string };
+
+export async function getInPersonSessionsForDate(date: Date): Promise<InPersonSession[]> {
   const dayName = weekdayNames[date.getDay()];
   const result = await withRetry(() => sql`
-    SELECT unit, time FROM timetable_sessions
+    SELECT id, unit, time FROM timetable_sessions
     WHERE day = ${dayName} AND mode = 'In-Person'
     ORDER BY time
-    LIMIT 1
   `);
-  return result.rows[0] ? { unit: result.rows[0].unit, time: result.rows[0].time } : null;
+  return result.rows.map((r) => ({ id: r.id, unit: r.unit, time: r.time }));
+}
+
+export async function getInPersonSessionForDate(date: Date): Promise<{ unit: string; time: string } | null> {
+  const sessions = await getInPersonSessionsForDate(date);
+  return sessions[0] || null;
 }

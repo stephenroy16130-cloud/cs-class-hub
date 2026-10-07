@@ -1,8 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { verifySessionToken, isStaff } from "@/lib/auth";
-import { getInPersonSessionForDate } from "@/lib/attendance";
-import { sendPushToUser } from "@/lib/push";
 
 export async function GET(req: NextRequest) {
   const token = req.cookies.get("session")?.value;
@@ -12,28 +10,31 @@ export async function GET(req: NextRequest) {
   }
 
   const dateParam = req.nextUrl.searchParams.get("date");
-  if (!dateParam) {
-    return NextResponse.json({ error: "date is required (YYYY-MM-DD)." }, { status: 400 });
+  const sessionIdParam = req.nextUrl.searchParams.get("sessionId");
+  if (!dateParam || !sessionIdParam) {
+    return NextResponse.json({ error: "date and sessionId are required." }, { status: 400 });
   }
 
-  const date = new Date(dateParam + "T00:00:00");
-  const inPerson = await getInPersonSessionForDate(date);
-
-  if (!inPerson) {
-    return NextResponse.json({ unit: null, time: null, students: [] });
+  const sessionRow = await sql`SELECT unit, time FROM timetable_sessions WHERE id = ${sessionIdParam}`;
+  const sessionInfo = sessionRow.rows[0];
+  if (!sessionInfo) {
+    return NextResponse.json({ error: "Session not found." }, { status: 404 });
   }
 
   try {
     const rosterResult = await sql`
       SELECT r.admission_no, r.name, ar.status
       FROM roster r
-      LEFT JOIN attendance_records ar ON ar.admission_no = r.admission_no AND ar.class_date = ${dateParam}
+      LEFT JOIN attendance_records ar
+        ON ar.admission_no = r.admission_no
+        AND ar.class_date = ${dateParam}
+        AND ar.session_id = ${sessionIdParam}
       ORDER BY r.name
     `;
 
     return NextResponse.json({
-      unit: inPerson.unit,
-      time: inPerson.time,
+      unit: sessionInfo.unit,
+      time: sessionInfo.time,
       students: rosterResult.rows.map((r) => ({
         admissionNo: r.admission_no,
         name: r.name,
@@ -55,9 +56,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
-  const { date, unit, records } = await req.json();
-  if (!date || !unit || !Array.isArray(records) || records.length === 0) {
-    return NextResponse.json({ error: "date, unit and records are required." }, { status: 400 });
+  const { date, sessionId, unit, records } = await req.json();
+  if (!date || !sessionId || !unit || !Array.isArray(records) || records.length === 0) {
+    return NextResponse.json({ error: "date, sessionId, unit and records are required." }, { status: 400 });
   }
 
   const admissionNos = records.map((r: any) => r.admissionNo);
@@ -65,12 +66,12 @@ export async function POST(req: NextRequest) {
 
   try {
     await sql.query(
-      `INSERT INTO attendance_records (admission_no, class_date, unit, status, marked_by)
-       SELECT a, $3::date, $4::text, s, $5::int
+      `INSERT INTO attendance_records (admission_no, class_date, unit, status, marked_by, session_id)
+       SELECT a, $3::date, $4::text, s, $5::int, $6::int
        FROM UNNEST($1::text[], $2::text[]) AS t(a, s)
-       ON CONFLICT (admission_no, class_date)
+       ON CONFLICT (admission_no, class_date, COALESCE(session_id, 0))
        DO UPDATE SET status = EXCLUDED.status, marked_by = EXCLUDED.marked_by, unit = EXCLUDED.unit`,
-      [admissionNos, statuses, date, unit, session.userId]
+      [admissionNos, statuses, date, unit, session.userId, sessionId]
     );
 
     const usersResult = await sql.query(
@@ -96,13 +97,6 @@ export async function POST(req: NextRequest) {
          FROM UNNEST($1::int[], $2::text[], $3::text[]) AS n(uid, t, b)`,
         [userIds, titles, bodies]
       );
-
-      // fire push notifications in parallel (non-blocking)
-      await Promise.allSettled(
-        usersResult.rows.map((u, i) =>
-          sendPushToUser(u.id, titles[i], bodies[i], "/attendance")
-        )
-      );
     }
 
     return NextResponse.json({ success: true, count: records.length });
@@ -114,4 +108,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
