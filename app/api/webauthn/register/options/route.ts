@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   const options = await generateRegistrationOptions({
     rpName: "CS 1.1 Class Hub",
-    rpID: getRpId(),
+    rpID: getRpId(req),
     userID: new TextEncoder().encode(String(session.userId)),
     userName: session.admissionNo || session.name,
     userDisplayName: session.name,
@@ -35,3 +35,4 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(options);
 }
+

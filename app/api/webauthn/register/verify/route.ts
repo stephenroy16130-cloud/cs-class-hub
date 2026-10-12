@@ -27,8 +27,8 @@ export async function POST(req: NextRequest) {
     const verification = await verifyRegistrationResponse({
       response,
       expectedChallenge,
-      expectedOrigin: getOrigin(),
-      expectedRPID: getRpId(),
+      expectedOrigin: getOrigin(req),
+      expectedRPID: getRpId(req),
     });
 
     if (!verification.verified || !verification.registrationInfo) {
@@ -56,3 +56,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Verification failed." }, { status: 400 });
   }
 }
+

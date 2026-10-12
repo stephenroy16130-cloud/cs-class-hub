@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
     const verification = await verifyAuthenticationResponse({
       response,
       expectedChallenge,
-      expectedOrigin: getOrigin(),
-      expectedRPID: getRpId(),
+      expectedOrigin: getOrigin(req),
+      expectedRPID: getRpId(req),
       credential: {
         id: cred.credential_id,
         publicKey: new Uint8Array(Buffer.from(cred.public_key, "base64")),
@@ -77,3 +77,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Verification failed." }, { status: 400 });
   }
 }
+

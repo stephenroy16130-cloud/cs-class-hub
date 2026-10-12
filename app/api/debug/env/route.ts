@@ -1,8 +1,6 @@
-﻿import { NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { getRpId, getOrigin } from "@/lib/webauthnConfig";
 
-export async function GET() {
-  return NextResponse.json({
-    rpId: process.env.NEXT_PUBLIC_RP_ID || "(not set)",
-    appUrl: process.env.NEXT_PUBLIC_APP_URL || "(not set)",
-  });
+export async function GET(req: NextRequest) {
+  return NextResponse.json({ rpId: getRpId(req), origin: getOrigin(req) });
 }

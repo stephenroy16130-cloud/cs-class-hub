@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   }
 
   const options = await generateAuthenticationOptions({
-    rpID: getRpId(),
+    rpID: getRpId(req),
     allowCredentials: credsResult.rows.map((c) => ({ id: c.credential_id })),
     userVerification: "required",
   });
@@ -37,3 +37,4 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ options, userId: user.id });
 }
+
