@@ -209,7 +209,7 @@ export default function ProfilePage() {
       <div className="mt-10 border-t border-gray-200 pt-6">
         <p className="font-serif text-lg font-semibold text-navy">Fingerprint / Face Login</p>
         <p className="mt-1 text-sm text-gray-500">
-          Set up biometric sign-in on this device so you can log in without typing your password.
+          Use your device's fingerprint or face unlock to log in without typing your password. Which one you see depends on what your device supports.
         </p>
 
         {passkeys.length > 0 && (
@@ -238,5 +238,6 @@ export default function ProfilePage() {
     </section>
   );
 }
+
 
 

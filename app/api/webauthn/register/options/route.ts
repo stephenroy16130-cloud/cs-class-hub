@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
     attestationType: "none",
     excludeCredentials: existing.rows.map((c) => ({ id: c.credential_id })),
     authenticatorSelection: {
+      authenticatorAttachment: "platform",
       residentKey: "preferred",
       userVerification: "required",
     },
@@ -35,4 +36,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(options);
 }
+
 
